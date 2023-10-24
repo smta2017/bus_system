@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\ReservationsController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -16,4 +17,24 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
+});
+
+
+Route::post('/login', function (Request $request) {
+
+    if (!auth()->attempt($request->only(['email', 'password']))) {
+        return response()->json(['error' => 'Unauthorized'], 401);
+    }
+
+    
+    return response()->json([
+        "success" => true,
+        "token" => auth()->user()->createToken('')->plainTextToken
+    ]);
+});
+
+
+Route::group(['middleware' => 'auth:sanctum'], function () {
+    Route::post('/bookings', [ReservationsController::class, 'bookSeat']);
+    Route::get('/available-seats', [ReservationsController::class, 'getAvailableSeats']);
 });
